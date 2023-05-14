@@ -1,4 +1,5 @@
 #include "PPage.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 /*
@@ -127,5 +128,23 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
         free(p);
     }
 
+    return;
+}
+
+/* 
+===============
+打印空闲页块链表
+===============
+*/
+void PPage_print_free_block(PPage_system *PPage_sys)
+{
+    PPage_block *p = PPage_sys->free_page_list;
+    puts("=========================");
+    printf("page_num::%u, free_page::%u\n\n", PPage_sys->page_num, PPage_sys->free_page_num);
+    for (int i = 0; p != NULL; ++i, p = p->next)
+    {
+        printf("block %d:: start:%u, num:%u\n", i, p->start_page_id, p->page_num);
+    }
+    puts("=========================");
     return;
 }
