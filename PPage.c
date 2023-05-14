@@ -115,7 +115,7 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num ||
         block->page_num + block->start_page_id > PPage_sys->page_num)
     {
-        puts("ERROR PPage_free:: 检测到页面超过上限");
+        puts("ERROR PPage_free:: 检测到释放页面超过上限");
         return;
     }
 
@@ -198,12 +198,12 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
 void PPage_print_free_block(PPage_system *PPage_sys)
 {
     PPage_block *p = PPage_sys->free_page_list;
-    puts("=========================");
+    puts("========Free PPage========");
     printf("page_num::%u, free_page::%u\n\n", PPage_sys->page_num, PPage_sys->free_page_num);
     for (int i = 0; p != NULL; ++i, p = p->next)
     {
         printf("block %d:: start:%u, end:%u, num:%u\n", i, p->start_page_id, p->start_page_id + p->page_num, p->page_num);
     }
-    puts("=========================");
+    puts("==========================");
     return;
 }

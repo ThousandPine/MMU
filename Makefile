@@ -1,5 +1,5 @@
 CC = gcc
 
-PPage_test: test.c PPage.c
+PPage_test: PPage_test.c PPage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin
