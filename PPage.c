@@ -45,29 +45,32 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
     if (PPage_sys->free_page_num < page_num)
         return NULL;
 
+    /* 修改空闲页的数量 */
+    PPage_sys->free_page_num -= page_num;
+
     /* 1. 找到满足页数量要求的位置 */
     PPage_block *p = PPage_sys->free_page_list;
     int cnt = p->page_num;
-    
-    while(cnt < page_num && p->next != NULL) /* 统计页数量 */
+
+    while (cnt < page_num && p->next != NULL) /* 统计页数量 */
     {
         p = p->next;
         cnt += p->page_num;
     }
 
     /* 2. 分割链表末尾页块中多余的页 */
-    if(cnt > page_num)
+    if (cnt > page_num)
     {
         unsigned delta = cnt - page_num; /* 计算多余页数量 */
 
-        unsigned new_start_id = p->start_page_id + p->page_num - delta;     /* 计算新页块起始序号 */
-        PPage_block *new_block = PPage_block_create(new_start_id, delta);   /* 将多余的页放入新的页块 */
+        unsigned new_start_id = p->start_page_id + p->page_num - delta;   /* 计算新页块起始序号 */
+        PPage_block *new_block = PPage_block_create(new_start_id, delta); /* 将多余的页放入新的页块 */
 
         /* 将新的页块插入空闲页链表 */
         new_block->next = p->next;
         p->next = new_block;
 
-        p->page_num -= delta;   /* 末页块减去多余页数量 */
+        p->page_num -= delta; /* 末页块减去多余页数量 */
     }
 
     /* 3. 修改空闲页和申请页链表，并返回结果 */
@@ -78,7 +81,29 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
     return res;
 }
 
-/* 
+/*
+===============
+检查页块是否重合
+===============
+有重合返回1，无重合返回0
+*/
+int PPage_block_check_overlap(PPage_block *b1, PPage_block* b2)
+{
+    if(b1 == NULL || b2 == NULL)
+        return 0;
+    
+    unsigned l1 = b1->start_page_id;
+    unsigned r1 = l1 + b1->page_num;
+    unsigned l2 = b2->start_page_id;
+    unsigned r2 = l2 + b2->page_num;
+
+    if ((l1 > l2 ? l1 : l2) < (r1 < r2 ? r1 : r2))
+        return 1;
+    else 
+        return 0;
+}
+
+/*
 =============
 释放页块中的页
 =============
@@ -86,15 +111,21 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
 */
 void PPage_free(PPage_system *PPage_sys, PPage_block *block)
 {
-    /* 1. 增加空闲页数量并创建页块副本 */
-    PPage_sys->free_page_num += block->page_num;
-    block = PPage_block_create(block->start_page_id, block->page_num);  /* 创建副本，用于加入队列 */
+    /* 检查是否超出上限 */
+    if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num)
+    {
+        puts("ERROR PPage_free:: 检测到页面数量超过上限");
+        return;
+    }
+
+    /* 1. 创建页块副本 */
+    block = PPage_block_create(block->start_page_id, block->page_num); /* 创建副本，用于加入队列 */
 
     /* 2. 找到插入位置 */
-    PPage_block *p_pre = NULL;     /* 前指针 */
-    PPage_block *p = PPage_sys->free_page_list;    /* 后指针 */
+    PPage_block *p_pre = NULL;                  /* 前指针 */
+    PPage_block *p = PPage_sys->free_page_list; /* 后指针 */
 
-    while(p != NULL && p->start_page_id < block->start_page_id) /* 找到第一个起始页id比它大的页块 */
+    while (p != NULL && p->start_page_id < block->start_page_id) /* 找到第一个起始页id比它大的页块 */
     {
         p_pre = p;
         p = p->next;
@@ -103,23 +134,42 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     // printf("debug::p->start_page_id:%u\n", p->start_page_id);
     // printf("debug::block->start_page_id:%u\n", block->start_page_id);
     // printf("debug::p_pre:%p\n", p_pre);
-    
+
     /* 3. 插入链表，要分两种情况 */
 
     /* 3.1 插入位置在链表头 */
     if (p_pre == NULL)
     {
+        /* 越界判断 */
+        if (PPage_block_check_overlap(block, p)) 
+        {
+            puts("ERROR PPage_free:: 检测到页块范围出现重合");
+            return;
+        }        
+
+        /* 插入链表 */
         block->next = p;
         PPage_sys->free_page_list = block;
     }
     /* 3.2 插入位置在链表中间或链表尾 */
     else
     {
+        /* 越界判断 */
+        if (PPage_block_check_overlap(block, p) || PPage_block_check_overlap(block, p_pre)) 
+        {
+            puts("ERROR PPage_free:: 检测到页块范围出现重合");
+            return;
+        }
+
+        /* 插入链表 */
         block->next = p;
         p_pre->next = block;
     }
 
-    /* 4. 判断能否与前后页块合并 */
+    /* 4. 增加空闲页数量 */
+    PPage_sys->free_page_num += block->page_num;
+
+    /* 5. 判断能否与前后页块合并 */
     /* 合并前页块 */
     if (p_pre != NULL && p_pre->start_page_id + p_pre->page_num == block->start_page_id)
     {
@@ -129,17 +179,18 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
         block = p_pre;
     }
     /* 合并后页块 */
-    if(p != NULL && block->start_page_id + block->page_num == p->start_page_id)
+    if (p != NULL && block->start_page_id + block->page_num == p->start_page_id)
     {
         block->page_num += p->page_num;
         block->next = p->next;
         free(p);
     }
 
+
     return;
 }
 
-/* 
+/*
 ===============
 打印空闲页块链表
 ===============
@@ -151,7 +202,7 @@ void PPage_print_free_block(PPage_system *PPage_sys)
     printf("page_num::%u, free_page::%u\n\n", PPage_sys->page_num, PPage_sys->free_page_num);
     for (int i = 0; p != NULL; ++i, p = p->next)
     {
-        printf("block %d:: start:%u, num:%u\n", i, p->start_page_id, p->page_num);
+        printf("block %d:: start:%u, end:%u, num:%u\n", i, p->start_page_id, p->start_page_id + p->page_num, p->page_num);
     }
     puts("=========================");
     return;
