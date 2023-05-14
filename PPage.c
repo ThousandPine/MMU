@@ -36,6 +36,8 @@ void PPage_system_init(PPage_system *PPage_sys, unsigned page_num, unsigned page
 ===================
 可能包含多个物理页块，以链表的形式返回
 空闲页数量不足时返回NULL
+
+NOTE:返回的页块链表不用时记得及时free，避免内存泄漏
 */
 PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
 {
@@ -89,7 +91,7 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     block = PPage_block_create(block->start_page_id, block->page_num);  /* 创建副本，用于加入队列 */
 
     /* 2. 找到插入位置 */
-    PPage_block *p_pre;     /* 前指针 */
+    PPage_block *p_pre = NULL;     /* 前指针 */
     PPage_block *p = PPage_sys->free_page_list;    /* 后指针 */
 
     while(p != NULL && p->start_page_id < block->start_page_id) /* 找到第一个起始页id比它大的页块 */
@@ -98,6 +100,10 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
         p = p->next;
     }
 
+    // printf("debug::p->start_page_id:%u\n", p->start_page_id);
+    // printf("debug::block->start_page_id:%u\n", block->start_page_id);
+    // printf("debug::p_pre:%p\n", p_pre);
+    
     /* 3. 插入链表，要分两种情况 */
 
     /* 3.1 插入位置在链表头 */
