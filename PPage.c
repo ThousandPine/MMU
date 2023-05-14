@@ -26,6 +26,7 @@ void PPage_system_init(PPage_system *PPage_sys, unsigned page_num, unsigned page
     PPage_sys->page_num = PPage_sys->free_page_num = page_num;
     PPage_sys->mem = (char *)malloc(sizeof(char) * page_num * page_size);
     PPage_sys->free_page_list = PPage_block_create(0, page_num);
+    return;
 }
 
 /*
@@ -126,4 +127,5 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
         free(p);
     }
 
+    return;
 }
