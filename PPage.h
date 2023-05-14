@@ -1,21 +1,21 @@
-/* 
-页块信息
+/*
+物理页块信息
 */
 typedef struct PPage_block
 {
-    unsigned page_num;             /* 包含页的数量 */
-    unsigned start_page_id;        /* 起始页编号 */
+    unsigned page_num;        /* 包含页的数量 */
+    unsigned start_page_id;   /* 起始页编号 */
     struct PPage_block *next; /* 下一个页块 */
 } PPage_block;
 
-/* 
+/*
 物理页管理系统信息
 */
 typedef struct
 {
-    unsigned page_size;                      /* 单个页所占的空间，以字节为单位 */
-    unsigned page_num;                       /* 页的总数 */
-    unsigned free_page_num;                  /* 空闲页数量 */
+    unsigned page_size;                 /* 单个页所占的空间，以字节为单位 */
+    unsigned page_num;                  /* 页的总数 */
+    unsigned free_page_num;             /* 空闲页数量 */
     char *mem;                          /* 内存空间 */
     struct PPage_block *free_page_list; /* 空闲页块链表 */
 } PPage_system;

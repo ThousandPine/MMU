@@ -87,11 +87,11 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
 ===============
 有重合返回1，无重合返回0
 */
-int PPage_block_check_overlap(PPage_block *b1, PPage_block* b2)
+int PPage_block_check_overlap(PPage_block *b1, PPage_block *b2)
 {
-    if(b1 == NULL || b2 == NULL)
+    if (b1 == NULL || b2 == NULL)
         return 0;
-    
+
     unsigned l1 = b1->start_page_id;
     unsigned r1 = l1 + b1->page_num;
     unsigned l2 = b2->start_page_id;
@@ -99,7 +99,7 @@ int PPage_block_check_overlap(PPage_block *b1, PPage_block* b2)
 
     if ((l1 > l2 ? l1 : l2) < (r1 < r2 ? r1 : r2))
         return 1;
-    else 
+    else
         return 0;
 }
 
@@ -112,7 +112,7 @@ int PPage_block_check_overlap(PPage_block *b1, PPage_block* b2)
 void PPage_free(PPage_system *PPage_sys, PPage_block *block)
 {
     /* 检查数量和编号是否超出上限 */
-    if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num ||\
+    if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num ||
         block->page_num + block->start_page_id > PPage_sys->page_num)
     {
         puts("ERROR PPage_free:: 检测到页面超过上限");
@@ -142,11 +142,11 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     if (p_pre == NULL)
     {
         /* 越界判断 */
-        if (PPage_block_check_overlap(block, p)) 
+        if (PPage_block_check_overlap(block, p))
         {
             puts("ERROR PPage_free:: 检测到页块范围出现重合");
             return;
-        }        
+        }
 
         /* 插入链表 */
         block->next = p;
@@ -156,7 +156,7 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     else
     {
         /* 越界判断 */
-        if (PPage_block_check_overlap(block, p) || PPage_block_check_overlap(block, p_pre)) 
+        if (PPage_block_check_overlap(block, p) || PPage_block_check_overlap(block, p_pre))
         {
             puts("ERROR PPage_free:: 检测到页块范围出现重合");
             return;
@@ -186,7 +186,6 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
         block->next = p->next;
         free(p);
     }
-
 
     return;
 }
