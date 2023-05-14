@@ -56,15 +56,16 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
     /* 2. 分割链表末尾页块中多余的页 */
     if(cnt > page_num)
     {
-        int delta = cnt - page_num; /* 计算多余页数量 */
+        unsigned delta = cnt - page_num; /* 计算多余页数量 */
 
-        p->page_num -= delta;   /* 减去多余的页 */
-
-        PPage_block *new_block = PPage_block_create(p->start_page_id + p->page_num - delta, delta); /* 将多余的页放入新的页块 */
+        unsigned new_start_id = p->start_page_id + p->page_num - delta;     /* 计算新页块起始序号 */
+        PPage_block *new_block = PPage_block_create(new_start_id, delta);   /* 将多余的页放入新的页块 */
 
         /* 将新的页块插入空闲页链表 */
         new_block->next = p->next;
         p->next = new_block;
+
+        p->page_num -= delta;   /* 末页块减去多余页数量 */
     }
 
     /* 3. 修改空闲页和申请页链表，并返回结果 */
