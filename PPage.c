@@ -111,10 +111,11 @@ int PPage_block_check_overlap(PPage_block *b1, PPage_block* b2)
 */
 void PPage_free(PPage_system *PPage_sys, PPage_block *block)
 {
-    /* 检查是否超出上限 */
-    if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num)
+    /* 检查数量和编号是否超出上限 */
+    if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num ||\
+        block->page_num + block->start_page_id > PPage_sys->page_num)
     {
-        puts("ERROR PPage_free:: 检测到页面数量超过上限");
+        puts("ERROR PPage_free:: 检测到页面超过上限");
         return;
     }
 
