@@ -109,6 +109,7 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     /* 3.1 插入位置在链表头 */
     if (p_pre == NULL)
     {
+        block->next = p;
         PPage_sys->free_page_list = block;
     }
     /* 3.2 插入位置在链表中间或链表尾 */
