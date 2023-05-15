@@ -70,17 +70,7 @@ VPage_table *VPage_create(PPage_system *PPage_sys, int size)
 void VPage_close(PPage_system *PPage_sys, VPage_table *VPage_t)
 {
     /* 释放物理页 */
-    PPage_block *p_pre = NULL;
-    PPage_block *p = VPage_t->PPage_list;
-
-    while (p != NULL)
-    {
-        PPage_free(PPage_sys, p);
-
-        p_pre = p;
-        p = p->next;
-        free(p_pre);
-    }
+    PPage_free(PPage_sys, VPage_t->PPage_list);
 
     /* 释放映射表 */
     free(VPage_t->page_map);
