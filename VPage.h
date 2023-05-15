@@ -11,4 +11,4 @@ typedef struct
 } VPage_table;
 
 VPage_table *VPage_alloc(PPage_system *PPage_sys, int size);
-void VPage_free(VPage_table *VPage_t, PPage_system *PPage_sys);
+void VPage_free(PPage_system *PPage_sys, VPage_table *VPage_t);

@@ -66,7 +66,7 @@ VPage_table *VPage_alloc(PPage_system *PPage_sys, int size)
 释放虚拟页
 =========
 */
-void VPage_free(VPage_table *VPage_t, PPage_system *PPage_sys)
+void VPage_free(PPage_system *PPage_sys, VPage_table *VPage_t)
 {
     /* 释放物理页 */
     PPage_block *p_pre = NULL;
@@ -77,8 +77,8 @@ void VPage_free(VPage_table *VPage_t, PPage_system *PPage_sys)
         PPage_free(PPage_sys, p);
 
         p_pre = p;
-        free(p_pre);
         p = p->next;
+        free(p_pre);
     }
 
     /* 释放映射表 */
