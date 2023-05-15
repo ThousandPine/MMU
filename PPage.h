@@ -26,3 +26,4 @@ void PPage_system_init(PPage_system *PPage_sys, unsigned page_num, unsigned page
 PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num);
 void PPage_free(PPage_system *PPage_sys, PPage_block *block);
 void PPage_print_free_block(PPage_system *PPage_sys);
+void PPage_system_close(PPage_system *PPage_sys);

@@ -17,7 +17,7 @@ int main()
             scanf("%u", &x);
             PPage_alloc(&PPage_sys, x);
         }
-        else
+        else if(x == 2)
         {
             PPage_block block;
             printf("Input start page id:");
@@ -26,8 +26,13 @@ int main()
             scanf("%u", &block.page_num);
             PPage_free(&PPage_sys, &block);
         }
+        else
+            break;
 
         PPage_print_free_block(&PPage_sys);
         puts("\n");
     }
+    PPage_system_close(&PPage_sys);
+    puts("====\nExit\n====");
+    return 0;
 }

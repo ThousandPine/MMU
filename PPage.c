@@ -207,3 +207,23 @@ void PPage_print_free_block(PPage_system *PPage_sys)
     puts("==========================");
     return;
 }
+
+/* 
+===============
+释放物理页表资源
+===============
+*/
+void PPage_system_close(PPage_system *PPage_sys)
+{
+    free(PPage_sys->mem);
+    
+    PPage_block *p_pre = NULL;
+    PPage_block *p = PPage_sys->free_page_list;
+
+    while(p != NULL)
+    {
+        p_pre = p;
+        p = p->next;
+        free(p_pre);
+    }
+}
