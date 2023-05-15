@@ -17,6 +17,37 @@ PPage_block *PPage_block_create(unsigned start_page_id, unsigned page_num)
 }
 
 /*
+===============
+释放物理页块记录
+===============
+*/
+void PPage_block_close(PPage_block *PPage_b)
+{
+    if (PPage_b != NULL)
+        free(PPage_b);
+    return;
+}
+
+/*
+==================
+释放物理页块记录链表
+==================
+*/
+void PPage_block_list_close(PPage_block *PPage_block_list)
+{
+    PPage_block *p_pre = NULL;
+    PPage_block *p = PPage_block_list;
+
+    while (p != NULL)
+    {
+        p_pre = p;
+        p = p->next;
+        PPage_block_close(p_pre);
+    }
+    return;
+}
+
+/*
 =============
 初始化物理页表
 =============
@@ -26,7 +57,7 @@ void PPage_system_init(PPage_system *PPage_sys, unsigned page_num, unsigned page
     PPage_sys->page_size = page_size; /* 每个页的大小，以字节为单位 */
     PPage_sys->page_num = PPage_sys->free_page_num = page_num;
     PPage_sys->mem = (char *)malloc(sizeof(char) * page_num * page_size);
-    PPage_sys->free_page_list = PPage_block_create(0, page_num);
+    PPage_sys->free_block_list = PPage_block_create(0, page_num);
     return;
 }
 
@@ -37,7 +68,7 @@ void PPage_system_init(PPage_system *PPage_sys, unsigned page_num, unsigned page
 可能包含多个物理页块，以链表的形式返回
 空闲页数量不足时返回NULL
 
-NOTE:返回的页块链表不用时记得及时free，避免内存泄漏
+NOTE: 释放物理页时也需要使用该链表
 */
 PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
 {
@@ -49,7 +80,7 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
     PPage_sys->free_page_num -= page_num;
 
     /* 1. 找到满足页数量要求的位置 */
-    PPage_block *p = PPage_sys->free_page_list;
+    PPage_block *p = PPage_sys->free_block_list;
     int cnt = p->page_num;
 
     while (cnt < page_num && p->next != NULL) /* 统计页数量 */
@@ -74,57 +105,28 @@ PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num)
     }
 
     /* 3. 修改空闲页和申请页链表，并返回结果 */
-    PPage_block *res = PPage_sys->free_page_list;
-    PPage_sys->free_page_list = p->next;
+    PPage_block *res = PPage_sys->free_block_list;
+    PPage_sys->free_block_list = p->next;
     p->next = NULL;
 
     return res;
 }
 
 /*
-===============
-检查页块是否重合
-===============
-有重合返回1，无重合返回0
+=================
+添加空闲页块到页表
+=================
+
+NOTE: 会将传入的内容直接加入到链表，因此会直接修改block的next指针
 */
-int PPage_block_check_overlap(PPage_block *b1, PPage_block *b2)
+void PPage_add_block(PPage_system *PPage_sys, PPage_block *block)
 {
-    if (b1 == NULL || b2 == NULL)
-        return 0;
-
-    unsigned l1 = b1->start_page_id;
-    unsigned r1 = l1 + b1->page_num;
-    unsigned l2 = b2->start_page_id;
-    unsigned r2 = l2 + b2->page_num;
-
-    if ((l1 > l2 ? l1 : l2) < (r1 < r2 ? r1 : r2))
-        return 1;
-    else
-        return 0;
-}
-
-/*
-=============
-释放页块中的页
-=============
-只会释放当前传入的页块，并不会释放整个链表
-*/
-void PPage_free(PPage_system *PPage_sys, PPage_block *block)
-{
-    /* 检查数量和编号是否超出上限 */
-    if (block->page_num + PPage_sys->free_page_num > PPage_sys->page_num ||
-        block->page_num + block->start_page_id > PPage_sys->page_num)
-    {
-        puts("ERROR PPage_free:: 检测到释放页面超过上限");
-        return;
-    }
-
-    /* 1. 创建页块副本 */
-    block = PPage_block_create(block->start_page_id, block->page_num); /* 创建副本，用于加入队列 */
+    /* 1. 增加空闲页数量 */
+    PPage_sys->free_page_num += block->page_num;
 
     /* 2. 找到插入位置 */
-    PPage_block *p_pre = NULL;                  /* 前指针 */
-    PPage_block *p = PPage_sys->free_page_list; /* 后指针 */
+    PPage_block *p_pre = NULL;                   /* 前指针 */
+    PPage_block *p = PPage_sys->free_block_list; /* 后指针 */
 
     while (p != NULL && p->start_page_id < block->start_page_id) /* 找到第一个起始页id比它大的页块 */
     {
@@ -132,51 +134,28 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
         p = p->next;
     }
 
-    // printf("debug::p->start_page_id:%u\n", p->start_page_id);
-    // printf("debug::block->start_page_id:%u\n", block->start_page_id);
-    // printf("debug::p_pre:%p\n", p_pre);
-
-    /* 3. 插入链表，要分两种情况 */
+    /* 3. 插入链表，分两种情况 */
 
     /* 3.1 插入位置在链表头 */
     if (p_pre == NULL)
     {
-        /* 越界判断 */
-        if (PPage_block_check_overlap(block, p))
-        {
-            puts("ERROR PPage_free:: 检测到页块范围出现重合");
-            return;
-        }
-
-        /* 插入链表 */
         block->next = p;
-        PPage_sys->free_page_list = block;
+        PPage_sys->free_block_list = block;
     }
     /* 3.2 插入位置在链表中间或链表尾 */
     else
     {
-        /* 越界判断 */
-        if (PPage_block_check_overlap(block, p) || PPage_block_check_overlap(block, p_pre))
-        {
-            puts("ERROR PPage_free:: 检测到页块范围出现重合");
-            return;
-        }
-
-        /* 插入链表 */
         block->next = p;
         p_pre->next = block;
     }
 
-    /* 4. 增加空闲页数量 */
-    PPage_sys->free_page_num += block->page_num;
-
-    /* 5. 判断能否与前后页块合并 */
+    /* 4. 判断能否与前后页块合并 */
     /* 合并前页块 */
     if (p_pre != NULL && p_pre->start_page_id + p_pre->page_num == block->start_page_id)
     {
         p_pre->page_num += block->page_num;
         p_pre->next = block->next;
-        free(block);
+        PPage_block_close(block);
         block = p_pre;
     }
     /* 合并后页块 */
@@ -184,7 +163,28 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
     {
         block->page_num += p->page_num;
         block->next = p->next;
-        free(p);
+        PPage_block_close(p);
+    }
+
+    return;
+}
+
+/*
+====================
+释放申请到的物理页链表
+====================
+传入之前申请物理页得到的链表，将链表中的物理页标记为空闲
+*/
+void PPage_free(PPage_system *PPage_sys, PPage_block *block_list)
+{
+    PPage_block *p = block_list;
+    PPage_block *p_next = NULL;
+
+    while (p != NULL)
+    {
+        p_next = p->next;
+        PPage_add_block(PPage_sys, p);
+        p = p_next;
     }
 
     return;
@@ -197,7 +197,7 @@ void PPage_free(PPage_system *PPage_sys, PPage_block *block)
 */
 void PPage_print_free_block(PPage_system *PPage_sys)
 {
-    PPage_block *p = PPage_sys->free_page_list;
+    PPage_block *p = PPage_sys->free_block_list;
     puts("========Free PPage========");
     printf("page_num::%u, free_page::%u\n\n", PPage_sys->page_num, PPage_sys->free_page_num);
     for (int i = 0; p != NULL; ++i, p = p->next)
@@ -208,7 +208,7 @@ void PPage_print_free_block(PPage_system *PPage_sys)
     return;
 }
 
-/* 
+/*
 ===============
 释放物理页表资源
 ===============
@@ -216,14 +216,5 @@ void PPage_print_free_block(PPage_system *PPage_sys)
 void PPage_system_close(PPage_system *PPage_sys)
 {
     free(PPage_sys->mem);
-    
-    PPage_block *p_pre = NULL;
-    PPage_block *p = PPage_sys->free_page_list;
-
-    while(p != NULL)
-    {
-        p_pre = p;
-        p = p->next;
-        free(p_pre);
-    }
+    PPage_block_list_close(PPage_sys->free_block_list);
 }
