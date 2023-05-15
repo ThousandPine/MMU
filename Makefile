@@ -1,5 +1,5 @@
 CC = gcc
 
-VPage_test: VPage_test.c VPage.c PPage.c
+Page_test: Page_test.c VPage.c PPage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin
