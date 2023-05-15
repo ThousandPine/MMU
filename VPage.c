@@ -1,6 +1,7 @@
 #include "VPage.h"
 #include "PPage.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 /*
 ======================
