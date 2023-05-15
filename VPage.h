@@ -10,4 +10,5 @@ typedef struct
     PPage_block *PPage_list; /* 申请的物理页块信息 */
 } VPage_table;
 
-
+VPage_table *VPage_alloc(PPage_system *PPage_sys, int size);
+void VPage_free(VPage_table *VPage_t, PPage_system *PPage_sys);
