@@ -26,13 +26,13 @@ void VPage_set_map(VPage_table *VPage_t)
 }
 
 /*
-=========
-申请虚拟页
-=========
+==================
+创建并初始化虚拟页表
+==================
 根据申请的内存大小和物理页信息，创建对应数量的虚拟页，并申请和映射对应的数量的物理页空间
 申请失败时返回NULL
 */
-VPage_table *VPage_alloc(PPage_system *PPage_sys, int size)
+VPage_table *VPage_create(PPage_system *PPage_sys, int size)
 {
     VPage_table *VPage_t = (VPage_table *)malloc(sizeof(VPage_t));
 
@@ -63,11 +63,11 @@ VPage_table *VPage_alloc(PPage_system *PPage_sys, int size)
 }
 
 /*
-=========
-释放虚拟页
-=========
+===============
+释放虚拟页表资源
+===============
 */
-void VPage_free(PPage_system *PPage_sys, VPage_table *VPage_t)
+void VPage_close(PPage_system *PPage_sys, VPage_table *VPage_t)
 {
     /* 释放物理页 */
     PPage_block *p_pre = NULL;
@@ -85,6 +85,6 @@ void VPage_free(PPage_system *PPage_sys, VPage_table *VPage_t)
     /* 释放映射表 */
     free(VPage_t->page_map);
 
-    /* 释放虚拟页 */
+    /* 释放虚拟页表 */
     free(VPage_t);
 }
