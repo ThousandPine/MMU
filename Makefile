@@ -7,3 +7,7 @@ page_test: page_test.c vpage.c ppage.c
 buddy_test: buddy_test.c buddy.c vpage.c ppage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin
+
+segment_test: segment_test.c segment.c buddy.c vpage.c ppage.c
+	@$(CC) $^ -o $@.bin
+	@./$@.bin
