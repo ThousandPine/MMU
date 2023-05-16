@@ -85,7 +85,7 @@ void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned siz
             start_addr += layer_size;
         }
     }
-    
+
     return;
 }
 
@@ -241,12 +241,10 @@ void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned si
 ==========================
 从伙伴系统申请指定大小的内存
 ==========================
-返回申请空间的首地址，申请失败时将res_flag设为-1
+申请空间的首地址保存在addr参数中，申请失败时函数返回-1
 */
-unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned size, int *res_flag)
+int buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size)
 {
-    unsigned start_addr = 0;
-
     /* 1. 计算最小所需的幂次 */
     unsigned order = 0;
 
@@ -264,20 +262,18 @@ unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned size, int *res_fla
         ++order;
     }
 
-    /* 无可用空间则提前退出 */
+    /* 未申请到可用空间则返回-1，表示失败 */
     if (free_seg == NULL)
     {
-        *res_flag = -1; /* 设置标志位表示申请失败 */
-        return start_addr;
+        return -1;
     }
 
     /* 3. 将多余的空间放回伙伴系统 */
     buddy_system_free(buddy_sys, free_seg->start_addr + size, free_seg->size - size);
 
     /* 4. 返回结果 */
-    *res_flag = 1;
-    start_addr = free_seg->start_addr;
+    *addr = free_seg->start_addr;
     free_segment_close(free_seg);
 
-    return start_addr;
+    return 0;
 }

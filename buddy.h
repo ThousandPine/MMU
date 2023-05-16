@@ -45,9 +45,9 @@ void buddy_system_print(buddy_system *buddy_sys);
 ==========================
 从伙伴系统申请指定大小的内存
 ==========================
-返回申请空间的首地址，申请失败时将res_flag设为-1
+申请空间的首地址保存在addr参数中，申请失败时函数返回-1
 */
-unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned size, int *res_flag);
+int buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size);
 
 /*
 =============================
