@@ -219,31 +219,15 @@ void buddy_system_print(buddy_system *buddy_sys)
 }
 
 /*
-=============================
-释放指定大小的内存空间到伙伴系统
-=============================
-函数会将内存分成为多个符合2的n次幂的内存段，逐个加入到伙伴系统链表中
-*/
-void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned size)
-{
-    for (unsigned order = 0; size > 0 && order <= buddy_sys->max_order; size >>= 1, ++order)
-    {
-        if((size & 1) == 1)
-        {
-            buddy_system_push(buddy_sys, start_addr, order);
-            start_addr += (1 << order);
-        }
-    }
-    return;
-}
+=================
+从伙伴系统申请内存
+=================
+申请空间的首地址保存在addr参数中
+返回最后申请到的空间大小，申请失败时返回0
 
-/*
-==========================
-从伙伴系统申请指定大小的内存
-==========================
-申请空间的首地址保存在addr参数中，申请失败时函数返回-1
+NOTE：申请到的空间大于等于size，并且皆为2的n次幂
 */
-int buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size)
+unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size)
 {
     /* 1. 计算最小所需的幂次 */
     unsigned order = 0;
@@ -265,15 +249,52 @@ int buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size)
     /* 未申请到可用空间则返回-1，表示失败 */
     if (free_seg == NULL)
     {
-        return -1;
+        return 0;
     }
 
-    /* 3. 将多余的空间放回伙伴系统 */
-    buddy_system_free(buddy_sys, free_seg->start_addr + size, free_seg->size - size);
-
-    /* 4. 返回结果 */
+    /* 3. 记录首地址 */
     *addr = free_seg->start_addr;
+
+    /* 4. 当申请到的空间大于等于所需空间的两倍时，将后一半的空间放回伙伴系统 */
+    while (free_seg->size >= size * 2)
+    {
+        --order;
+        free_seg->size /= 2;
+        buddy_system_push(buddy_sys, free_seg->start_addr + free_seg->size, order);
+    }
+
+    /* 5. 返回最后申请到的空间大小 */
+    size = free_seg->size;
     free_segment_destroy(free_seg);
 
-    return 0;
+    return size;
+}
+
+/*
+====================
+释放内存空间到伙伴系统
+====================
+释放的内存空间需要为2的n次幂，否则输出错误信息，超过伙伴系统
+*/
+void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned size)
+{
+    /* 使用BrianKernighan算法判断是否为2的n次幂 */
+    if ((size & (size - 1)) != 0)
+    {
+        puts("ERROR buddy_system_free:: 释放的内存空间需要为2的n次幂");
+        return;
+    }
+
+    /* 计算对应的幂次 */
+    unsigned order = 0;
+
+    while(order <= buddy_sys->max_order && size != (1 << order))
+    {
+        ++order;
+    }
+
+    /* 添加记录到伙伴系统 */
+    buddy_system_push(buddy_sys, start_addr, order);
+
+    return;
 }

@@ -44,17 +44,20 @@ void buddy_system_destroy(buddy_system *buddy_sys);
 void buddy_system_print(buddy_system *buddy_sys);
 
 /*
-==========================
-从伙伴系统申请指定大小的内存
-==========================
-申请空间的首地址保存在addr参数中，申请失败时函数返回-1
+=================
+从伙伴系统申请内存
+=================
+申请空间的首地址保存在addr参数中
+返回最后申请到的空间大小，申请失败时返回0
+
+NOTE：申请到的空间大于等于size，并且皆为2的n次幂
 */
-int buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size);
+unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size);
 
 /*
-=============================
-释放指定大小的内存空间到伙伴系统
-=============================
-函数会将内存分成为多个符合2的n次幂的内存段，逐个加入到伙伴系统链表中
+====================
+释放内存空间到伙伴系统
+====================
+释放的内存空间需要为2的n次幂，否则输出错误信息，超过伙伴系统
 */
 void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned size);
