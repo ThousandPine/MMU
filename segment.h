@@ -20,7 +20,7 @@ typedef struct segment
 */
 typedef struct segment_table
 {
-    pthread_t thread_id;     /* 所属线程 */
+    unsigned pid;            /* 所属进程id */
     segment *seg_list;       /* 段信息链表 */
     buddy_system *buddy_sys; /* 伙伴系统指针 */
     ppage_system *ppage_sys; /* 物理页表指针 */
@@ -32,7 +32,7 @@ typedef struct segment_table
 创建段表
 ========
 */
-segment_table *segment_table_create(ppage_system *ppage_sys, pthread_t thread_id, unsigned size);
+segment_table *segment_table_create(ppage_system *ppage_sys, unsigned pid, unsigned size);
 
 /*
 ===========

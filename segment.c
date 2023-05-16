@@ -109,11 +109,11 @@ void segment_free(segment_table *segment_t, unsigned start_addr)
 创建段表
 ========
 */
-segment_table *segment_table_create(ppage_system *ppage_sys, pthread_t thread_id, unsigned size)
+segment_table *segment_table_create(ppage_system *ppage_sys, unsigned pid, unsigned size)
 {
     segment_table *segment_t = (segment_table *)malloc(sizeof(segment_table));
     segment_t->seg_list = NULL;
-    segment_t->thread_id = thread_id;
+    segment_t->pid = pid;
     segment_t->ppage_sys = ppage_sys;
     segment_t->buddy_sys = buddy_system_create(31, size);
     segment_t->next = NULL;
