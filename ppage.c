@@ -21,7 +21,7 @@ ppage_block *ppage_block_create(unsigned start_page_id, unsigned page_num)
 释放物理页块记录
 ===============
 */
-void ppage_block_close(ppage_block *ppage_b)
+void ppage_block_destroy(ppage_block *ppage_b)
 {
     if (ppage_b != NULL)
         free(ppage_b);
@@ -33,7 +33,7 @@ void ppage_block_close(ppage_block *ppage_b)
 释放物理页块记录链表
 ==================
 */
-void ppage_block_list_close(ppage_block *ppage_block_list)
+void ppage_block_list_destroy(ppage_block *ppage_block_list)
 {
     ppage_block *p_pre = NULL;
     ppage_block *p = ppage_block_list;
@@ -42,23 +42,36 @@ void ppage_block_list_close(ppage_block *ppage_block_list)
     {
         p_pre = p;
         p = p->next;
-        ppage_block_close(p_pre);
+        ppage_block_destroy(p_pre);
     }
     return;
 }
 
 /*
-=============
-初始化物理页表
-=============
+===========
+创建物理页表
+===========
 */
-void ppage_system_init(ppage_system *ppage_sys, unsigned page_num, unsigned page_size)
+ppage_system * ppage_system_create(unsigned page_num, unsigned page_size)
 {
+    ppage_system *ppage_sys = (ppage_system *)malloc(sizeof(ppage_system));
     ppage_sys->page_size = page_size; /* 每个页的大小，以字节为单位 */
     ppage_sys->page_num = ppage_sys->free_page_num = page_num;
     ppage_sys->mem = (char *)malloc(sizeof(char) * page_num * page_size);
     ppage_sys->free_block_list = ppage_block_create(0, page_num);
-    return;
+    return ppage_sys;
+}
+
+/*
+===============
+释放物理页表资源
+===============
+*/
+void ppage_system_destroy(ppage_system *ppage_sys)
+{
+    free(ppage_sys->mem);
+    ppage_block_list_destroy(ppage_sys->free_block_list);
+    free(ppage_sys);
 }
 
 /*
@@ -155,7 +168,7 @@ void ppage_add_block(ppage_system *ppage_sys, ppage_block *block)
     {
         p_pre->page_num += block->page_num;
         p_pre->next = block->next;
-        ppage_block_close(block);
+        ppage_block_destroy(block);
         block = p_pre;
     }
     /* 合并后页块 */
@@ -163,7 +176,7 @@ void ppage_add_block(ppage_system *ppage_sys, ppage_block *block)
     {
         block->page_num += p->page_num;
         block->next = p->next;
-        ppage_block_close(p);
+        ppage_block_destroy(p);
     }
 
     return;
@@ -206,15 +219,4 @@ void ppage_print_free_block(ppage_system *ppage_sys)
     }
     puts("==========================");
     return;
-}
-
-/*
-===============
-释放物理页表资源
-===============
-*/
-void ppage_system_close(ppage_system *ppage_sys)
-{
-    free(ppage_sys->mem);
-    ppage_block_list_close(ppage_sys->free_block_list);
 }

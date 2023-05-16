@@ -22,18 +22,18 @@ typedef struct
 } ppage_system;
 
 /*
-=============
-初始化物理页表
-=============
+===========
+创建物理页表
+===========
 */
-void ppage_system_init(ppage_system *ppage_sys, unsigned page_num, unsigned page_size);
+ppage_system * ppage_system_create(unsigned page_num, unsigned page_size);
 
 /*
 ===============
 释放物理页表资源
 ===============
 */
-void ppage_system_close(ppage_system *ppage_sys);
+void ppage_system_destroy(ppage_system *ppage_sys);
 
 /*
 ===================

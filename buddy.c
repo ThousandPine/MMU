@@ -22,7 +22,7 @@ free_segment *free_segment_create(unsigned start_addr, unsigned size)
 释放空闲段信息
 =============
 */
-void free_segment_close(free_segment *free_seg)
+void free_segment_destroy(free_segment *free_seg)
 {
     if (free_seg != NULL)
         free(free_seg);
@@ -34,7 +34,7 @@ void free_segment_close(free_segment *free_seg)
 释放空闲段链表信息
 =================
 */
-void free_segment_list_close(free_segment *free_seg)
+void free_segment_list_destroy(free_segment *free_seg)
 {
     free_segment *p_pre = NULL;
     free_segment *p = free_seg;
@@ -43,7 +43,7 @@ void free_segment_list_close(free_segment *free_seg)
     {
         p_pre = p;
         p = p->next;
-        free_segment_close(p_pre);
+        free_segment_destroy(p_pre);
     }
     return;
 }
@@ -51,20 +51,20 @@ void free_segment_list_close(free_segment *free_seg)
 /* ============================================================================================= */
 
 /*
-=============
-初始化伙伴系统
-=============
+===========
+创建伙伴系统
+===========
 根据最大幂次和初始内存大小，创建伙伴系统链表
 幂次上限不得超过31
 */
-void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned size)
+buddy_system *buddy_system_create(unsigned max_order, unsigned size)
 {
     if (max_order > 31)
     {
         puts("ERROR buddy_system_init:: 最大幂次超过上限(31)");
-        return;
+        return NULL;
     }
-
+    buddy_system *buddy_sys = (buddy_system *)malloc(sizeof(buddy_system));
     buddy_sys->max_order = max_order;
     buddy_sys->free_seg_list = (free_segment **)malloc(sizeof(free_segment *) * (max_order + 1));
 
@@ -86,7 +86,7 @@ void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned siz
         }
     }
 
-    return;
+    return buddy_sys;
 }
 
 /*
@@ -94,11 +94,11 @@ void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned siz
 释放伙伴系统资源
 ===============
 */
-void buddy_system_close(buddy_system *buddy_sys)
+void buddy_system_destroy(buddy_system *buddy_sys)
 {
     for (int order = 0; order <= buddy_sys->max_order; ++order)
     {
-        free_segment_list_close(buddy_sys->free_seg_list[order]);
+        free_segment_list_destroy(buddy_sys->free_seg_list[order]);
     }
 
     free(buddy_sys->free_seg_list);
@@ -146,8 +146,8 @@ void buddy_system_push(buddy_system *buddy_sys, unsigned start_addr, unsigned or
         buddy_sys->free_seg_list[order] = free_seg->next;
 
         buddy_system_push(buddy_sys, p_pre->start_addr, order + 1);
-        free_segment_close(p_pre);
-        free_segment_close(free_seg);
+        free_segment_destroy(p_pre);
+        free_segment_destroy(free_seg);
     }
     /* 与后一个合并 */
     else if (p != NULL && free_seg->start_addr + free_seg->size == p->start_addr)
@@ -162,8 +162,8 @@ void buddy_system_push(buddy_system *buddy_sys, unsigned start_addr, unsigned or
         }
 
         buddy_system_push(buddy_sys, free_seg->start_addr, order + 1);
-        free_segment_close(p);
-        free_segment_close(free_seg);
+        free_segment_destroy(p);
+        free_segment_destroy(free_seg);
     }
 
     return;
@@ -273,7 +273,7 @@ int buddy_system_alloc(buddy_system *buddy_sys, unsigned *addr, unsigned size)
 
     /* 4. 返回结果 */
     *addr = free_seg->start_addr;
-    free_segment_close(free_seg);
+    free_segment_destroy(free_seg);
 
     return 0;
 }

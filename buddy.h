@@ -18,20 +18,20 @@ typedef struct
 } buddy_system;
 
 /*
-=============
-初始化伙伴系统
-=============
+===========
+创建伙伴系统
+===========
 根据最大幂次和初始内存大小，创建伙伴系统链表
 幂次上限不得超过31
 */
-void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned size);
+buddy_system *buddy_system_create(unsigned max_order, unsigned size);
 
 /*
 ===============
 释放伙伴系统资源
 ===============
 */
-void buddy_system_close(buddy_system *buddy_sys);
+void buddy_system_destroy(buddy_system *buddy_sys);
 
 
 /*
