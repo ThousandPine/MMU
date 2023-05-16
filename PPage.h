@@ -21,10 +21,42 @@ typedef struct
     struct PPage_block *free_block_list; /* 空闲页块链表 */
 } PPage_system;
 
+/*
+=============
+初始化物理页表
+=============
+*/
 void PPage_system_init(PPage_system *PPage_sys, unsigned page_num, unsigned page_size);
+
+/*
+===============
+释放物理页表资源
+===============
+*/
 void PPage_system_close(PPage_system *PPage_sys);
 
+/*
+===================
+申请指定数量的物理页
+===================
+可能包含多个物理页块，以链表的形式返回
+空闲页数量不足时返回NULL
+
+NOTE: 释放物理页时也需要使用该链表
+*/
 PPage_block *PPage_alloc(PPage_system *PPage_sys, unsigned page_num);
+
+/*
+====================
+释放申请到的物理页链表
+====================
+传入之前申请物理页得到的链表，将链表中的物理页标记为空闲
+*/
 void PPage_free(PPage_system *PPage_sys, PPage_block *block_list);
 
+/*
+===============
+打印空闲页块链表
+===============
+*/
 void PPage_print_free_block(PPage_system *PPage_sys);
