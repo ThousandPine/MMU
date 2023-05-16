@@ -1,9 +1,9 @@
 CC = gcc
 
-Page_test: Page_test.c VPage.c PPage.c
+page_test: page_test.c vpage.c ppage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin
 
-Buddy_test: Buddy_test.c Buddy.c VPage.c PPage.c
+buddy_test: buddy_test.c buddy.c vpage.c ppage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin

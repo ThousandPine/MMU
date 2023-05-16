@@ -1,4 +1,4 @@
-#include "Buddy.h"
+#include "buddy.h"
 #include <stdio.h>
 
 int main()

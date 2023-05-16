@@ -1,4 +1,4 @@
-#include "Buddy.h"
+#include "buddy.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -196,7 +196,7 @@ unsigned buddy_system_pop(buddy_system *buddy_sys, unsigned order, int *flag)
 */
 void buddy_system_print(buddy_system *buddy_sys)
 {
-    puts("=======Buddy system======");
+    puts("=======buddy system======");
     for (int order = buddy_sys->max_order; order >= 0; --order)
     {
         free_segment *p = buddy_sys->free_seg_list[order];
