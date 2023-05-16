@@ -33,22 +33,6 @@ void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned siz
 */
 void buddy_system_close(buddy_system *buddy_sys);
 
-/*
-==================
-添加内存段到伙伴系统
-==================
-添加大小为2的order次幂的空间到伙伴系统
-*/
-void buddy_system_push(buddy_system *buddy_sys, unsigned start_addr, unsigned order);
-
-/*
-==================
-从伙伴系统移除内存块
-==================
-移除大小为2的order次幂的内存记录，并返回起始地址。
-操作成功时flag置为1，失败时flag置为0
-*/
-unsigned buddy_system_pop(buddy_system *buddy_sys, unsigned order, int *flag);
 
 /*
 ===================
@@ -56,3 +40,19 @@ unsigned buddy_system_pop(buddy_system *buddy_sys, unsigned order, int *flag);
 ===================
 */
 void buddy_system_print(buddy_system *buddy_sys);
+
+/*
+==========================
+从伙伴系统申请指定大小的内存
+==========================
+返回申请空间的首地址，申请失败时将res_flag设为-1
+*/
+unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned size, int *res_flag);
+
+/*
+=============================
+释放指定大小的内存空间到伙伴系统
+=============================
+函数会将内存分成为多个符合2的n次幂的内存段，逐个加入到伙伴系统链表中
+*/
+void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned size);

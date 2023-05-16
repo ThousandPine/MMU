@@ -48,6 +48,8 @@ void free_segment_list_close(free_segment *free_seg)
     return;
 }
 
+/* ============================================================================================= */
+
 /*
 =============
 初始化伙伴系统
@@ -66,7 +68,7 @@ void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned siz
     buddy_sys->max_order = max_order;
     buddy_sys->free_seg_list = (free_segment **)malloc(sizeof(free_segment *) * (max_order + 1));
 
-    /* 将内存分配到空闲链表 */
+    /* 将内存分割到对应大小的链表 */
     unsigned start_addr = 0;
 
     for (int order = max_order; order >= 0; --order)
@@ -76,12 +78,15 @@ void buddy_system_init(buddy_system *buddy_sys, unsigned max_order, unsigned siz
         if ((layer_size & size) == 0)
         {
             buddy_sys->free_seg_list[order] = NULL;
-            continue;
         }
-
-        buddy_sys->free_seg_list[order] = free_segment_create(start_addr, layer_size);
-        start_addr += layer_size;
+        else
+        {
+            buddy_sys->free_seg_list[order] = free_segment_create(start_addr, layer_size);
+            start_addr += layer_size;
+        }
     }
+    
+    return;
 }
 
 /*
@@ -168,25 +173,18 @@ void buddy_system_push(buddy_system *buddy_sys, unsigned start_addr, unsigned or
 ==================
 从伙伴系统移除内存块
 ==================
-移除大小为2的order次幂的内存记录，并返回起始地址。
-操作成功时flag置为1，失败时flag置为0
+移除大小为2的order次幂的内存记录，并返回空闲段记录指针，无对应记录则返回NULL。
 */
-unsigned buddy_system_pop(buddy_system *buddy_sys, unsigned order, int *flag)
+free_segment *buddy_system_pop(buddy_system *buddy_sys, unsigned order)
 {
     free_segment *p = buddy_sys->free_seg_list[order];
-    unsigned start_addr = 0;
     if (p != NULL)
     {
-        *flag = 1;
-        start_addr = p->start_addr;
-
         buddy_sys->free_seg_list[order] = p->next;
-        free_segment_close(p);
+        p->next = NULL;
     }
-    else
-        *flag = 0;
 
-    return start_addr;
+    return p;
 }
 
 /*
@@ -218,4 +216,68 @@ void buddy_system_print(buddy_system *buddy_sys)
         putchar('\n');
     }
     puts("=========================");
+}
+
+/*
+=============================
+释放指定大小的内存空间到伙伴系统
+=============================
+函数会将内存分成为多个符合2的n次幂的内存段，逐个加入到伙伴系统链表中
+*/
+void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned size)
+{
+    for (unsigned order = 0; size > 0 && order <= buddy_sys->max_order; size >>= 1, ++order)
+    {
+        if((size & 1) == 1)
+        {
+            buddy_system_push(buddy_sys, start_addr, order);
+            start_addr += (1 << order);
+        }
+    }
+    return;
+}
+
+/*
+==========================
+从伙伴系统申请指定大小的内存
+==========================
+返回申请空间的首地址，申请失败时将res_flag设为-1
+*/
+unsigned buddy_system_alloc(buddy_system *buddy_sys, unsigned size, int *res_flag)
+{
+    unsigned start_addr = 0;
+
+    /* 1. 计算最小所需的幂次 */
+    unsigned order = 0;
+
+    for (unsigned x = 1; x < size; x <<= 1)
+        ++order;
+
+    /* 2. 从伙伴系统申请可用空间 */
+    free_segment *free_seg = NULL;
+
+    while (order <= buddy_sys->max_order)
+    {
+        free_seg = buddy_system_pop(buddy_sys, order);
+        if (free_seg != NULL)
+            break;
+        ++order;
+    }
+
+    /* 无可用空间则提前退出 */
+    if (free_seg == NULL)
+    {
+        *res_flag = -1; /* 设置标志位表示申请失败 */
+        return start_addr;
+    }
+
+    /* 3. 将多余的空间放回伙伴系统 */
+    buddy_system_free(buddy_sys, free_seg->start_addr + size, free_seg->size - size);
+
+    /* 4. 返回结果 */
+    *res_flag = 1;
+    start_addr = free_seg->start_addr;
+    free_segment_close(free_seg);
+
+    return start_addr;
 }
