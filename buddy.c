@@ -288,7 +288,7 @@ void buddy_system_free(buddy_system *buddy_sys, unsigned start_addr, unsigned si
     /* 计算对应的幂次 */
     unsigned order = 0;
 
-    while(order <= buddy_sys->max_order && size != (1 << order))
+    while (order <= buddy_sys->max_order && size != (1 << order))
     {
         ++order;
     }

@@ -35,7 +35,6 @@ buddy_system *buddy_system_create(unsigned max_order, unsigned size);
 */
 void buddy_system_destroy(buddy_system *buddy_sys);
 
-
 /*
 ===================
 打印伙伴系统链表信息

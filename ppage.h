@@ -27,7 +27,7 @@ typedef struct
 创建物理页表
 ===========
 */
-ppage_system * ppage_system_create(unsigned page_num, unsigned page_size);
+ppage_system *ppage_system_create(unsigned page_num, unsigned page_size);
 
 /*
 ===============

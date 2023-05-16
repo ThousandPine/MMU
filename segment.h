@@ -27,7 +27,6 @@ typedef struct segment_table
     struct segment_table *next;
 } segment_table;
 
-
 /*
 ========
 创建段表
@@ -57,4 +56,3 @@ int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size);
 传入申请时得到的内存段首地址，函数会在段表中查询并释放相应的段
 */
 void segment_free(segment_table *segment_t, unsigned start_addr);
-

@@ -52,7 +52,7 @@ void ppage_block_list_destroy(ppage_block *ppage_block_list)
 创建物理页表
 ===========
 */
-ppage_system * ppage_system_create(unsigned page_num, unsigned page_size)
+ppage_system *ppage_system_create(unsigned page_num, unsigned page_size)
 {
     ppage_system *ppage_sys = (ppage_system *)malloc(sizeof(ppage_system));
     ppage_sys->page_size = page_size; /* 每个页的大小，以字节为单位 */
