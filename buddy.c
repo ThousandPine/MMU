@@ -39,6 +39,12 @@ void free_segment_destroy(free_segment *free_seg)
 */
 int buddy_system_alloc(buddy_system *buddy_sys, int order)
 {
+    /* 判断范围 */
+    if (order < 0 || order > buddy_sys->max_order)
+    {
+        return -1;
+    }
+
     /* 1. 查找符合要求的最小内存块 */
     free_segment *free_seg = NULL;
     int f_order = order;
@@ -87,6 +93,12 @@ int buddy_system_alloc(buddy_system *buddy_sys, int order)
 */
 void buddy_system_free(buddy_system *buddy_sys, int start_addr, int order)
 {
+    /* 判断范围 */
+    if (order < 0 || order > buddy_sys->max_order)
+    {
+        return;
+    }
+
     /* 1. 创建空闲内存段记录 */
     free_segment *free_seg = free_segment_create(start_addr, (1 << order));
 
@@ -164,9 +176,9 @@ void buddy_system_free(buddy_system *buddy_sys, int start_addr, int order)
 */
 buddy_system *buddy_system_create(int max_order, int size)
 {
-    if (max_order > 30)
+    if (max_order > 30 || max_order < 0)
     {
-        puts("ERROR buddy_system_init:: 最大幂次超过上限(30)");
+        puts("ERROR buddy_system_init:: 最大幂次不在限定区间(0~30)");
         return NULL;
     }
 
