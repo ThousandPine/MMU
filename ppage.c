@@ -7,7 +7,7 @@
 创建物理页块记录
 ===============
 */
-ppage_block *ppage_block_create(unsigned start_page_id, unsigned page_num)
+ppage_block *ppage_block_create(int start_page_id, int page_num)
 {
     ppage_block *block = (ppage_block *)malloc(sizeof(ppage_block));
     block->page_num = page_num;
@@ -35,7 +35,7 @@ void ppage_block_destroy(ppage_block *ppage_b)
 创建物理页表
 ===========
 */
-ppage_system *ppage_system_create(unsigned page_num, unsigned page_size)
+ppage_system *ppage_system_create(int page_num, int page_size)
 {
     ppage_system *ppage_sys = (ppage_system *)malloc(sizeof(ppage_system));
     ppage_sys->page_size = page_size; /* 每个页的大小，以字节为单位 */
@@ -139,7 +139,7 @@ void ppage_add_block(ppage_system *ppage_sys, ppage_block *block)
 
 NOTE: 释放物理页时也需要使用该链表
 */
-ppage_block *ppage_alloc(ppage_system *ppage_sys, unsigned page_num)
+ppage_block *ppage_alloc(ppage_system *ppage_sys, int page_num)
 {
     /* 空闲物理页数量不足，返回NULL */
     if (ppage_sys->free_page_num < page_num)
@@ -161,9 +161,9 @@ ppage_block *ppage_alloc(ppage_system *ppage_sys, unsigned page_num)
     /* 2. 分割链表末尾页块中多余的页 */
     if (cnt > page_num)
     {
-        unsigned delta = cnt - page_num; /* 计算多余页数量 */
+        int delta = cnt - page_num; /* 计算多余页数量 */
 
-        unsigned new_start_id = p->start_page_id + p->page_num - delta;   /* 计算新页块起始序号 */
+        int new_start_id = p->start_page_id + p->page_num - delta;   /* 计算新页块起始序号 */
         ppage_block *new_block = ppage_block_create(new_start_id, delta); /* 将多余的页放入新的页块 */
 
         /* 将新的页块插入空闲页链表 */

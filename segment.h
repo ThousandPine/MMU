@@ -11,7 +11,7 @@ typedef struct segment
 {
     int start_addr;       /* 起始地址 */
     int size;             /* 段长度 */
-    unsigned order;       /* 幂次 */
+    int order;       /* 幂次 */
     vpage_table *vpage_t; /* 虚拟页表指针 */
     struct segment *next;
 } segment;
@@ -21,7 +21,7 @@ typedef struct segment
 */
 typedef struct segment_table
 {
-    unsigned pid;            /* 所属进程id */
+    int pid;            /* 所属进程id */
     segment *seg_list;       /* 段信息链表 */
     buddy_system *buddy_sys; /* 伙伴系统指针 */
     ppage_system *ppage_sys; /* 物理页表指针 */
@@ -33,7 +33,7 @@ typedef struct segment_table
 创建段表
 ========
 */
-segment_table *segment_table_create(unsigned pid, ppage_system *ppage_sys, int size, unsigned max_order);
+segment_table *segment_table_create(int pid, ppage_system *ppage_sys, int size, int max_order);
 /*
 ===========
 释放段表资源

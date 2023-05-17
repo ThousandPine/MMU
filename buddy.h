@@ -15,7 +15,7 @@ typedef struct free_segment
 */
 typedef struct
 {
-    unsigned max_order;           /* 最大幂次 */
+    int max_order;           /* 最大幂次 */
     free_segment **free_seg_list; /* 链表头数组 */
 } buddy_system;
 
@@ -26,7 +26,7 @@ typedef struct
 根据最大幂次和初始内存大小，创建伙伴系统链表
 幂次上限不得超过30
 */
-buddy_system *buddy_system_create(unsigned max_order, int size);
+buddy_system *buddy_system_create(int max_order, int size);
 
 /*
 ===============
@@ -49,7 +49,7 @@ void buddy_system_print(buddy_system *buddy_sys);
 从伙伴系统中申请大小为2的order次幂大小的内存，并返回首地址
 申请失败时，返回-1
 */
-int buddy_system_alloc(buddy_system *buddy_sys, unsigned order);
+int buddy_system_alloc(buddy_system *buddy_sys, int order);
 
 /*
 ====================
@@ -57,4 +57,4 @@ int buddy_system_alloc(buddy_system *buddy_sys, unsigned order);
 ====================
 释放大小为2的order次幂的空间到伙伴系统
 */
-void buddy_system_free(buddy_system *buddy_sys, int start_addr, unsigned order);
+void buddy_system_free(buddy_system *buddy_sys, int start_addr, int order);

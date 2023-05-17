@@ -121,7 +121,7 @@ void segment_free(segment_table *segment_t, int start_addr)
 创建段表
 ========
 */
-segment_table *segment_table_create(unsigned pid, ppage_system *ppage_sys, int size, unsigned max_order)
+segment_table *segment_table_create(int pid, ppage_system *ppage_sys, int size, int max_order)
 {
     segment_table *segment_t = (segment_table *)malloc(sizeof(segment_table));
     segment_t->seg_list = NULL;

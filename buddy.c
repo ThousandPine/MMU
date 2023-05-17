@@ -37,11 +37,11 @@ void free_segment_destroy(free_segment *free_seg)
 从伙伴系统中申请大小为2的order次幂大小的内存，并返回首地址
 申请失败时，返回-1
 */
-int buddy_system_alloc(buddy_system *buddy_sys, unsigned order)
+int buddy_system_alloc(buddy_system *buddy_sys, int order)
 {
     /* 1. 查找符合要求的最小内存块 */
     free_segment *free_seg = NULL;
-    unsigned f_order = order;
+    int f_order = order;
 
     while (f_order <= buddy_sys->max_order && free_seg == NULL)
     {
@@ -67,7 +67,7 @@ int buddy_system_alloc(buddy_system *buddy_sys, unsigned order)
     }
 
     /* 3. 当申请到的空间大于等于所需空间的两倍时，将后一半的空间放回伙伴系统 */
-    for (unsigned size = (1 << order); free_seg->size >= size * 2; --f_order, free_seg->size /= 2)
+    for (int size = (1 << order); free_seg->size >= size * 2; --f_order, free_seg->size /= 2)
     {
         buddy_system_free(buddy_sys, free_seg->start_addr + (free_seg->size / 2), f_order - 1);
     }
@@ -85,7 +85,7 @@ int buddy_system_alloc(buddy_system *buddy_sys, unsigned order)
 ====================
 释放大小为2的order次幂的空间到伙伴系统
 */
-void buddy_system_free(buddy_system *buddy_sys, int start_addr, unsigned order)
+void buddy_system_free(buddy_system *buddy_sys, int start_addr, int order)
 {
     /* 1. 创建空闲内存段记录 */
     free_segment *free_seg = free_segment_create(start_addr, (1 << order));
@@ -162,7 +162,7 @@ void buddy_system_free(buddy_system *buddy_sys, int start_addr, unsigned order)
 根据最大幂次和初始内存大小，创建伙伴系统链表
 幂次上限不得超过30
 */
-buddy_system *buddy_system_create(unsigned max_order, int size)
+buddy_system *buddy_system_create(int max_order, int size)
 {
     if (max_order > 30)
     {
@@ -176,7 +176,7 @@ buddy_system *buddy_system_create(unsigned max_order, int size)
     buddy_sys->free_seg_list = (free_segment **)malloc(sizeof(free_segment *) * (max_order + 1));
 
     /* 初始化链表数组 */
-    for (unsigned order = 0; order <= max_order; ++order)
+    for (int order = 0; order <= max_order; ++order)
     {
         buddy_sys->free_seg_list[order] = NULL;
     }

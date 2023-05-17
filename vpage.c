@@ -11,7 +11,7 @@
 void vpage_set_map(vpage_table *vpage_t)
 {
     ppage_block *p = vpage_t->ppage_list;
-    for (unsigned i = 0, j = 0; i < vpage_t->page_num; i++, j++)
+    for (int i = 0, j = 0; i < vpage_t->page_num; i++, j++)
     {
         if (j >= p->page_num)
         {
