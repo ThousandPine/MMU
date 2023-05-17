@@ -15,3 +15,12 @@ segment_test: segment_test.c segment.c buddy.c vpage.c ppage.c
 memory_test: memory_test.c memory.c segment.c buddy.c vpage.c ppage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin
+
+all: mem.c memory.c segment.c buddy.c vpage.c ppage.c
+	@$(CC) $^ -o mem
+	@./mem
+
+.PHONY: clean
+
+clean:
+	@rm -f *.bin mem
