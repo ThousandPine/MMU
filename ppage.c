@@ -28,24 +28,7 @@ void ppage_block_destroy(ppage_block *ppage_b)
     return;
 }
 
-/*
-==================
-释放物理页块记录链表
-==================
-*/
-void ppage_block_list_destroy(ppage_block *ppage_block_list)
-{
-    ppage_block *p_pre = NULL;
-    ppage_block *p = ppage_block_list;
-
-    while (p != NULL)
-    {
-        p_pre = p;
-        p = p->next;
-        ppage_block_destroy(p_pre);
-    }
-    return;
-}
+/* ================================================================================ */
 
 /*
 ===========
@@ -69,61 +52,24 @@ ppage_system *ppage_system_create(unsigned page_num, unsigned page_size)
 */
 void ppage_system_destroy(ppage_system *ppage_sys)
 {
+    /* 释放页块链表 */
+    ppage_block *p_pre = NULL;
+    ppage_block *p = ppage_sys->free_block_list;
+
+    while (p != NULL)
+    {
+        p_pre = p;
+        p = p->next;
+        ppage_block_destroy(p_pre);
+    }
+
+    /* 释放管理的内存 */
     free(ppage_sys->mem);
-    ppage_block_list_destroy(ppage_sys->free_block_list);
+
     free(ppage_sys);
 }
 
-/*
-===================
-申请指定数量的物理页
-===================
-可能包含多个物理页块，以链表的形式返回
-空闲页数量不足时返回NULL
-
-NOTE: 释放物理页时也需要使用该链表
-*/
-ppage_block *ppage_alloc(ppage_system *ppage_sys, unsigned page_num)
-{
-    /* 空闲物理页数量不足，返回NULL */
-    if (ppage_sys->free_page_num < page_num)
-        return NULL;
-
-    /* 修改空闲页的数量 */
-    ppage_sys->free_page_num -= page_num;
-
-    /* 1. 找到满足页数量要求的位置 */
-    ppage_block *p = ppage_sys->free_block_list;
-    int cnt = p->page_num;
-
-    while (cnt < page_num && p->next != NULL) /* 统计页数量 */
-    {
-        p = p->next;
-        cnt += p->page_num;
-    }
-
-    /* 2. 分割链表末尾页块中多余的页 */
-    if (cnt > page_num)
-    {
-        unsigned delta = cnt - page_num; /* 计算多余页数量 */
-
-        unsigned new_start_id = p->start_page_id + p->page_num - delta;   /* 计算新页块起始序号 */
-        ppage_block *new_block = ppage_block_create(new_start_id, delta); /* 将多余的页放入新的页块 */
-
-        /* 将新的页块插入空闲页链表 */
-        new_block->next = p->next;
-        p->next = new_block;
-
-        p->page_num -= delta; /* 末页块减去多余页数量 */
-    }
-
-    /* 3. 修改空闲页和申请页链表，并返回结果 */
-    ppage_block *res = ppage_sys->free_block_list;
-    ppage_sys->free_block_list = p->next;
-    p->next = NULL;
-
-    return res;
-}
+/* ================================================================================ */
 
 /*
 =================
@@ -182,11 +128,64 @@ void ppage_add_block(ppage_system *ppage_sys, ppage_block *block)
     return;
 }
 
+/* ================================================================================ */
+
+/*
+===================
+申请指定数量的物理页
+===================
+可能包含多个物理页块，以链表的形式返回
+空闲页数量不足时返回NULL
+
+NOTE: 释放物理页时也需要使用该链表
+*/
+ppage_block *ppage_alloc(ppage_system *ppage_sys, unsigned page_num)
+{
+    /* 空闲物理页数量不足，返回NULL */
+    if (ppage_sys->free_page_num < page_num)
+        return NULL;
+
+    /* 修改空闲页的数量 */
+    ppage_sys->free_page_num -= page_num;
+
+    /* 1. 找到满足页数量要求的位置 */
+    ppage_block *p = ppage_sys->free_block_list;
+    int cnt = p->page_num;
+
+    while (cnt < page_num && p->next != NULL) /* 统计页数量 */
+    {
+        p = p->next;
+        cnt += p->page_num;
+    }
+
+    /* 2. 分割链表末尾页块中多余的页 */
+    if (cnt > page_num)
+    {
+        unsigned delta = cnt - page_num; /* 计算多余页数量 */
+
+        unsigned new_start_id = p->start_page_id + p->page_num - delta;   /* 计算新页块起始序号 */
+        ppage_block *new_block = ppage_block_create(new_start_id, delta); /* 将多余的页放入新的页块 */
+
+        /* 将新的页块插入空闲页链表 */
+        new_block->next = p->next;
+        p->next = new_block;
+
+        p->page_num -= delta; /* 末页块减去多余页数量 */
+    }
+
+    /* 3. 修改空闲页和申请页链表，并返回结果 */
+    ppage_block *res = ppage_sys->free_block_list;
+    ppage_sys->free_block_list = p->next;
+    p->next = NULL;
+
+    return res;
+}
+
 /*
 ====================
 释放申请到的物理页链表
 ====================
-传入之前申请物理页得到的链表，将链表中的物理页标记为空闲
+传入之前申请物理页得到的链表，将链表中的页块重新加入空间
 */
 void ppage_free(ppage_system *ppage_sys, ppage_block *block_list)
 {
@@ -202,6 +201,8 @@ void ppage_free(ppage_system *ppage_sys, ppage_block *block_list)
 
     return;
 }
+
+/* ================================================================================ */
 
 /*
 ===============
