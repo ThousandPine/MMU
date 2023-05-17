@@ -18,7 +18,7 @@ free_segment *free_segment_create(int start_addr, int size)
 
 /*
 =============
-释放空闲段信息
+销毁空闲段信息
 =============
 */
 void free_segment_destroy(free_segment *free_seg)

@@ -134,9 +134,9 @@ segment_table *segment_table_create(int pid, ppage_system *ppage_sys, int size, 
 }
 
 /*
-===========
-释放段表资源
-===========
+========
+销毁段表
+========
 */
 void segment_table_destroy(segment_table *segment_t)
 {

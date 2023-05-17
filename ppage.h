@@ -30,9 +30,9 @@ typedef struct
 ppage_system *ppage_system_create(int page_num, int page_size);
 
 /*
-===============
-释放物理页表资源
-===============
+===========
+销毁物理页表
+===========
 */
 void ppage_system_destroy(ppage_system *ppage_sys);
 

@@ -18,7 +18,7 @@ ppage_block *ppage_block_create(int start_page_id, int page_num)
 
 /*
 ===============
-释放物理页块记录
+销毁物理页块记录
 ===============
 */
 void ppage_block_destroy(ppage_block *ppage_b)
@@ -46,9 +46,9 @@ ppage_system *ppage_system_create(int page_num, int page_size)
 }
 
 /*
-===============
-释放物理页表资源
-===============
+===========
+销毁物理页表
+===========
 */
 void ppage_system_destroy(ppage_system *ppage_sys)
 {

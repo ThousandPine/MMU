@@ -30,7 +30,7 @@ buddy_system *buddy_system_create(int max_order, int size);
 
 /*
 ===============
-释放伙伴系统资源
+销毁伙伴系统资源
 ===============
 */
 void buddy_system_destroy(buddy_system *buddy_sys);
