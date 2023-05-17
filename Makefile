@@ -11,3 +11,7 @@ buddy_test: buddy_test.c buddy.c vpage.c ppage.c
 segment_test: segment_test.c segment.c buddy.c vpage.c ppage.c
 	@$(CC) $^ -o $@.bin
 	@./$@.bin
+
+memory_test: memory_test.c memory.c segment.c buddy.c vpage.c ppage.c
+	@$(CC) $^ -o $@.bin
+	@./$@.bin
