@@ -215,7 +215,7 @@ void ppage_print_free_block(ppage_system *ppage_sys)
     printf("page_num::%u, free_page::%u\n\n", ppage_sys->page_num, ppage_sys->free_page_num);
     for (int i = 0; p != NULL; ++i, p = p->next)
     {
-        printf("block %d:: start:%u, end:%u, num:%u\n", i, p->start_page_id, p->start_page_id + p->page_num, p->page_num);
+        printf("block %d:: %u-%u(%u)\n", i, p->start_page_id, p->start_page_id + p->page_num - 1, p->page_num);
     }
     puts("==========================");
     return;
