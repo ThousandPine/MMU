@@ -15,16 +15,17 @@ int segment_alloc(segment_table *segment_t, int size)
     /* 1. 计算size对应的2的最小幂次 */
 
     /* Brian Kernighan算法判断size是否为2的幂，若不是则需要让结果额外加1 */
-    int order = (size & (size - 1)) == 0 ? -1 : 0; 
+    seg->order = (size & (size - 1)) == 0 ? -1 : 0;
 
     while (size > 0)
     {
-        ++order;
+        ++(seg->order);
         size >>= 1;
     }
 
     /* 1. 从伙伴系统申请内存 */
-    seg->start_addr = buddy_system_alloc(segment_t->buddy_sys, seg->start_addr);
+    seg->start_addr = buddy_system_alloc(segment_t->buddy_sys, seg->order);
+    seg->size = (1 << seg->order);
 
     /* 申请失败则返回-1 */
     if (seg->start_addr == -1)
@@ -33,12 +34,13 @@ int segment_alloc(segment_table *segment_t, int size)
         return -1;
     }
 
-    /* 2. 创建虚拟页 */
-    seg->vpage_t = vpage_table_alloc(segment_t->ppage_sys, size);
+    /* 2. 分配虚拟页表 */
+    seg->vpage_t = vpage_table_alloc(segment_t->ppage_sys, seg->size);
 
     /* 创建失败则返回-1 */
     if (seg->vpage_t == NULL)
     {
+        buddy_system_free(segment_t->buddy_sys, seg->start_addr, seg->order);
         free(seg);
         return -1;
     }
@@ -95,7 +97,7 @@ void segment_free(segment_table *segment_t, int start_addr)
     }
 
     /* 2. 释放内存到伙伴系统 */
-    buddy_system_free(segment_t->buddy_sys, p->start_addr, p->size);
+    buddy_system_free(segment_t->buddy_sys, p->start_addr, p->order);
 
     /* 3. 释放虚拟页表 */
     vpage_table_free(segment_t->ppage_sys, p->vpage_t);

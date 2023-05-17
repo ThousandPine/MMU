@@ -11,6 +11,7 @@ typedef struct segment
 {
     int start_addr;       /* 起始地址 */
     int size;             /* 段长度 */
+    unsigned order;       /* 幂次 */
     vpage_table *vpage_t; /* 虚拟页表指针 */
     struct segment *next;
 } segment;
