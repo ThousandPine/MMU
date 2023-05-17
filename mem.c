@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
+// #include <unistd.h>
 // #include <sys/wait.h>
 #include <semaphore.h>
 #include <pthread.h>
@@ -17,20 +17,32 @@
 memory *mem;
 sem_t mutex;
 
+void sleep(int n)
+{
+
+    for (int i = 0, n = 100 * rand(); i < n; ++i)
+        ;
+}
+
+/*
+模拟进程行为
+*/
 void *process(void *arg)
 {
     /* 初始化 */
     sem_wait(&mutex);
 
     int pid = memory_register_process(mem); /* 注册内存空间 */
-    memory_printf_info(mem);                /* 输出内存信息 */
+
+    printf("process_init::pid=%d\n\n", pid); /* 输出初始化信息 */
+    memory_printf_info(mem);                 /* 输出内存信息 */
 
     sem_post(&mutex);
 
     sleep(1);
 
     /* 申请内存 */
-    const int cnt = 1 + (rand() % 3); /* 随机设定申请次数 */
+    const int cnt = 2 + (rand() % 3); /* 随机设定申请次数 */
     int addr[cnt];                    /* 内存地址 */
     int size[cnt];                    /* 申请空间 */
 
@@ -38,10 +50,11 @@ void *process(void *arg)
     {
         sem_wait(&mutex);
 
-        size[i] = 1 + (rand() % 2048);                                    /* 随机设定申请的内存空间 */
-        addr[i] = memory_alloc(mem, pid, size[i]);                        /* 申请内存 */
-        printf("alloc::pid=%d size=%d addr=%d\n", pid, size[i], addr[i]); /* 输出申请信息和地址 */
-        memory_printf_info(mem);                                          /* 输出内存信息 */
+        size[i] = 1 + (rand() % 2048);             /* 随机设定申请的内存空间 */
+        addr[i] = memory_alloc(mem, pid, size[i]); /* 申请内存 */
+
+        printf("alloc::pid=%d size=%d addr=%d\n\n", pid, size[i], addr[i]); /* 输出申请信息和地址 */
+        memory_printf_info_by_pid(mem, pid);                                /* 输出内存信息 */
 
         sem_post(&mutex);
         sleep(1);
@@ -54,11 +67,12 @@ void *process(void *arg)
 
         if (addr[i] != -1)
         {
-            memory_free(mem, pid, addr[i]);                 /* 释放内存 */
-            printf("free::pid=%d size=%d\n", pid, size[i]); /* 输出释放信息 */
-            memory_printf_info(mem);                        /* 输出内存信息 */
+            memory_free(mem, pid, addr[i]); /* 释放内存 */
+
+            printf("free::pid=%d size=%d\n\n", pid, size[i]); /* 输出释放信息 */
+            memory_printf_info_by_pid(mem, pid);              /* 输出内存信息 */
         }
-        
+
         sem_post(&mutex);
         sleep(1);
     }
@@ -66,6 +80,8 @@ void *process(void *arg)
     /* 释放资源并结束 */
     sem_wait(&mutex);
     memory_unregister_process(mem, pid);
+    // printf("process_finish::pid=%d\n\n", pid); /* 输出进程结束信息 */
+    // memory_printf_info(mem);                   /* 输出内存信息 */
     sem_post(&mutex);
     return NULL;
 }
