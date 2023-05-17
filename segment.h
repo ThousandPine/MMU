@@ -9,8 +9,8 @@
 */
 typedef struct segment
 {
-    unsigned start_addr;  /* 起始地址 */
-    unsigned size;        /* 段长度 */
+    int start_addr;       /* 起始地址 */
+    int size;             /* 段长度 */
     vpage_table *vpage_t; /* 虚拟页表指针 */
     struct segment *next;
 } segment;
@@ -32,8 +32,7 @@ typedef struct segment_table
 创建段表
 ========
 */
-segment_table *segment_table_create(ppage_system *ppage_sys, unsigned pid, unsigned size);
-
+segment_table *segment_table_create(unsigned pid, ppage_system *ppage_sys, int size, unsigned max_order);
 /*
 ===========
 释放段表资源
@@ -45,9 +44,9 @@ void segment_table_destroy(segment_table *segment_t);
 =============
 申请内存段空间
 =============
-申请空间并记录在段表，首地址保存在addr参数中，申请失败时函数返回-1
+申请空间并记录在段表，返回内存的首地址，申请失败时返回-1
 */
-int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size);
+int segment_alloc(segment_table *segment_t, int size);
 
 /*
 =============
@@ -55,4 +54,4 @@ int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size);
 =============
 传入申请时得到的内存段首地址，函数会在段表中查询并释放相应的段
 */
-void segment_free(segment_table *segment_t, unsigned start_addr);
+void segment_free(segment_table *segment_t, int start_addr);

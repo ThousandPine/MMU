@@ -6,17 +6,28 @@
 =============
 申请内存段空间
 =============
-申请空间并记录在段表，首地址保存在addr参数中，申请失败时函数返回-1
+申请空间并记录在段表，返回内存的首地址，申请失败时返回-1
 */
-int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size)
+int segment_alloc(segment_table *segment_t, int size)
 {
     segment *seg = (segment *)malloc(sizeof(segment));
 
-    /* 1. 从伙伴系统申请内存 */
-    seg->size = buddy_system_alloc(segment_t->buddy_sys, &seg->start_addr, size);
+    /* 1. 计算size对应的2的最小幂次 */
 
-    /* 申请失败则返回NULL */
-    if (seg->size == 0)
+    /* Brian Kernighan算法判断size是否为2的幂，若不是则需要让结果额外加1 */
+    int order = (size & (size - 1)) == 0 ? -1 : 0; 
+
+    while (size > 0)
+    {
+        ++order;
+        size >>= 1;
+    }
+
+    /* 1. 从伙伴系统申请内存 */
+    seg->start_addr = buddy_system_alloc(segment_t->buddy_sys, seg->start_addr);
+
+    /* 申请失败则返回-1 */
+    if (seg->start_addr == -1)
     {
         free(seg);
         return -1;
@@ -25,7 +36,7 @@ int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size)
     /* 2. 创建虚拟页 */
     seg->vpage_t = vpage_table_alloc(segment_t->ppage_sys, size);
 
-    /* 创建失败则返回NULL */
+    /* 创建失败则返回-1 */
     if (seg->vpage_t == NULL)
     {
         free(seg);
@@ -53,10 +64,9 @@ int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size)
         seg->next = p;
     }
 
-    /* 4. 记录结果并返回 */
-    *addr = seg->start_addr;
+    /* 4. 返回结果 */
 
-    return 0;
+    return seg->start_addr;
 }
 
 /*
@@ -65,7 +75,7 @@ int segment_alloc(segment_table *segment_t, unsigned *addr, unsigned size)
 =============
 传入申请时得到的内存段首地址，函数会在段表中查询并释放相应的段
 */
-void segment_free(segment_table *segment_t, unsigned start_addr)
+void segment_free(segment_table *segment_t, int start_addr)
 {
     /* 1. 找到对应地址的段记录 */
     segment *p_pre = NULL;
@@ -109,13 +119,13 @@ void segment_free(segment_table *segment_t, unsigned start_addr)
 创建段表
 ========
 */
-segment_table *segment_table_create(ppage_system *ppage_sys, unsigned pid, unsigned size)
+segment_table *segment_table_create(unsigned pid, ppage_system *ppage_sys, int size, unsigned max_order)
 {
     segment_table *segment_t = (segment_table *)malloc(sizeof(segment_table));
     segment_t->seg_list = NULL;
     segment_t->pid = pid;
     segment_t->ppage_sys = ppage_sys;
-    segment_t->buddy_sys = buddy_system_create(31, size);
+    segment_t->buddy_sys = buddy_system_create(max_order, size);
     segment_t->next = NULL;
 
     return segment_t;
