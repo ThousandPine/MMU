@@ -59,3 +59,10 @@ int memory_alloc(memory *mem, int pid, int size);
 =======
 */
 void memory_free(memory *mem, int pid, int addr);
+
+/*
+===========
+输出内存信息
+===========
+*/
+void memory_printf_info(memory *mem);

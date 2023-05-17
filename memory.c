@@ -130,7 +130,6 @@ void memory_unregister_process(memory *mem, int pid)
 
 /* ================================================================= */
 
-
 /*
 =======
 申请内存
@@ -185,5 +184,38 @@ void memory_free(memory *mem, int pid, int addr)
     /* 释放内存到段表 */
     segment_free(segment_t, addr);
 
+    return;
+}
+
+/* ================================================================= */
+
+/*
+===========
+输出内存信息
+===========
+*/
+void memory_printf_info(memory *mem)
+{
+    puts("***********Memory info***********\n");
+
+    /* 物理内存 */
+    ppage_print_free_block(mem->ppage_sys);
+    putchar('\n');
+    // puts("\n");
+
+    /* 虚拟内存 */
+    segment_table *p = mem->seg_table_list;
+
+    while(p != NULL)
+    {
+        printf("pid: %d\n", p->pid);
+
+        buddy_system_print(p->buddy_sys);
+        putchar('\n');
+
+        p = p->next;
+    }
+
+    // puts("*********************************\n");
     return;
 }
