@@ -246,7 +246,9 @@ void buddy_system_destroy(buddy_system *buddy_sys)
 ===================
 */
 void buddy_system_print(buddy_system *buddy_sys)
-{
+{   
+    int free_space = 0;
+
     puts("=======buddy system======");
     for (int order = buddy_sys->max_order; order >= 0; --order)
     {
@@ -257,16 +259,19 @@ void buddy_system_print(buddy_system *buddy_sys)
             continue;
         }
 
-        printf("order%u(%d)::", order, (1 << order));
+        printf("order%d(%d)::", order, (1 << order));
 
         while (p != NULL)
         {
-            printf("[%u-%u]", p->start_addr, p->start_addr + p->size - 1);
+            free_space += p->size;
+
+            printf("[%d-%d]", p->start_addr, p->start_addr + p->size - 1);
             if (p->next != NULL)
                 printf(" -> ");
             p = p->next;
         }
         putchar('\n');
     }
+    printf("free_space::%d\n", free_space);
     puts("=========================");
 }

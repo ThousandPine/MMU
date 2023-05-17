@@ -163,7 +163,7 @@ ppage_block *ppage_alloc(ppage_system *ppage_sys, int page_num)
     {
         int delta = cnt - page_num; /* 计算多余页数量 */
 
-        int new_start_id = p->start_page_id + p->page_num - delta;   /* 计算新页块起始序号 */
+        int new_start_id = p->start_page_id + p->page_num - delta;        /* 计算新页块起始序号 */
         ppage_block *new_block = ppage_block_create(new_start_id, delta); /* 将多余的页放入新的页块 */
 
         /* 将新的页块插入空闲页链表 */
@@ -213,10 +213,13 @@ void ppage_print_free_block(ppage_system *ppage_sys)
 {
     ppage_block *p = ppage_sys->free_block_list;
     puts("========Free ppage========");
-    printf("page_num::%u, free_page::%u\n\n", ppage_sys->page_num, ppage_sys->free_page_num);
+
+    printf("size::%d, free_space::%d\n", ppage_sys->page_num * ppage_sys->page_size, ppage_sys->free_page_num * ppage_sys->page_size);
+    printf("page_num::%d, free_pages::%d\n\n", ppage_sys->page_num, ppage_sys->free_page_num);
+
     for (int i = 0; p != NULL; ++i, p = p->next)
     {
-        printf("block %d:: %u-%u(%u)\n", i, p->start_page_id, p->start_page_id + p->page_num - 1, p->page_num);
+        printf("block %d:: %d-%d(%d)\n", i, p->start_page_id, p->start_page_id + p->page_num - 1, p->page_num);
     }
     puts("==========================");
     return;
