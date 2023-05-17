@@ -66,3 +66,10 @@ void memory_free(memory *mem, int pid, int addr);
 ===========
 */
 void memory_printf_info(memory *mem);
+
+/*
+=====================
+根据进程id输出内存信息
+=====================
+*/
+void memory_printf_info_by_pid(memory *mem, int pid);

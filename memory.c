@@ -106,7 +106,7 @@ void memory_unregister_process(memory *mem, int pid)
     }
 
     /* 未找到对应进程，输出错误信息 */
-    if(p == NULL)
+    if (p == NULL)
     {
         puts("ERROR memory_unregister_process:: 进程id不存在");
         return;
@@ -124,7 +124,7 @@ void memory_unregister_process(memory *mem, int pid)
 
     /* 销毁段表记录 */
     segment_table_destroy(p);
-    
+
     return;
 }
 
@@ -141,13 +141,13 @@ int memory_alloc(memory *mem, int pid, int size)
     /* 查找进程段表 */
     segment_table *segment_t = mem->seg_table_list;
 
-    while(segment_t!=NULL && segment_t->pid != pid)
+    while (segment_t != NULL && segment_t->pid != pid)
     {
         segment_t = segment_t->next;
     }
 
     /* 未找到则输出错误信息并返回-1 */
-    if(segment_t == NULL)
+    if (segment_t == NULL)
     {
         puts("ERROR memory_alloc:: 进程id未注册");
         return -1;
@@ -169,13 +169,13 @@ void memory_free(memory *mem, int pid, int addr)
     /* 查找进程段表 */
     segment_table *segment_t = mem->seg_table_list;
 
-    while(segment_t!=NULL && segment_t->pid != pid)
+    while (segment_t != NULL && segment_t->pid != pid)
     {
         segment_t = segment_t->next;
     }
 
     /* 未找到则输出错误信息 */
-    if(segment_t == NULL)
+    if (segment_t == NULL)
     {
         puts("ERROR memory_free:: 进程id未注册");
         return;
@@ -206,7 +206,7 @@ void memory_printf_info(memory *mem)
     /* 虚拟内存 */
     segment_table *p = mem->seg_table_list;
 
-    while(p != NULL)
+    while (p != NULL)
     {
         printf("pid: %d\n", p->pid);
 
@@ -216,6 +216,37 @@ void memory_printf_info(memory *mem)
         p = p->next;
     }
 
-    // puts("*********************************\n");
+    puts("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    return;
+}
+
+/*
+=====================
+根据进程id输出内存信息
+=====================
+*/
+void memory_printf_info_by_pid(memory *mem, int pid)
+{
+    puts("***********Memory info***********\n");
+
+    /* 物理内存 */
+    ppage_print_free_block(mem->ppage_sys);
+    putchar('\n');
+    // puts("\n");
+
+    /* 找到对应进程的虚拟内存 */
+    segment_table *p = mem->seg_table_list;
+
+    while (p != NULL && p->pid != pid)
+    {
+        p = p->next;
+    }
+
+    printf("pid: %d\n", p->pid);
+
+    buddy_system_print(p->buddy_sys);
+    putchar('\n');
+
+    puts("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     return;
 }
