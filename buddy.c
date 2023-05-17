@@ -28,25 +28,6 @@ void free_segment_destroy(free_segment *free_seg)
     return;
 }
 
-/*
-=================
-释放空闲段链表信息
-=================
-*/
-void free_segment_list_destroy(free_segment *free_seg)
-{
-    free_segment *p_pre = NULL;
-    free_segment *p = free_seg;
-
-    while (p != NULL)
-    {
-        p_pre = p;
-        p = p->next;
-        free_segment_destroy(p_pre);
-    }
-    return;
-}
-
 /* ============================================================================================= */
 
 /*
@@ -218,13 +199,25 @@ buddy_system *buddy_system_create(unsigned max_order, int size)
 */
 void buddy_system_destroy(buddy_system *buddy_sys)
 {
+    /* 释放内存记录链表空间 */
     for (int order = 0; order <= buddy_sys->max_order; ++order)
     {
-        free_segment_list_destroy(buddy_sys->free_seg_list[order]);
+        free_segment *p_pre = NULL;
+        free_segment *p = buddy_sys->free_seg_list[order];
+
+        while (p != NULL)
+        {
+            p_pre = p;
+            p = p->next;
+            free_segment_destroy(p_pre);
+        }
     }
 
+    /* 释放链表头数组空间 */
     free(buddy_sys->free_seg_list);
 }
+
+/* ============================================================================================= */
 
 /*
 ===================
