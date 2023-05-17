@@ -91,11 +91,13 @@ void buddy_system_free(buddy_system *buddy_sys, int start_addr, unsigned order)
     free_segment *free_seg = free_segment_create(start_addr, (1 << order));
 
     /* 2. 查找插入位置 */
+    free_segment *p_pre_pre = NULL;
     free_segment *p_pre = NULL;
     free_segment *p = buddy_sys->free_seg_list[order];
 
     while (p != NULL && p->start_addr < start_addr)
     {
+        p_pre_pre = p_pre;
         p_pre = p;
         p = p->next;
     }
@@ -118,7 +120,14 @@ void buddy_system_free(buddy_system *buddy_sys, int start_addr, unsigned order)
     /* 与前一个合并 */
     if (order < buddy_sys->max_order && p_pre != NULL && p_pre->start_addr + p_pre->size == free_seg->start_addr)
     {
-        buddy_sys->free_seg_list[order] = free_seg->next;
+        if (p_pre_pre == NULL) /* 涉及链表头 */
+        {
+            buddy_sys->free_seg_list[order] = free_seg->next;
+        }
+        else
+        {
+            p_pre_pre->next = free_seg->next;
+        }
 
         buddy_system_free(buddy_sys, p_pre->start_addr, order + 1);
         free_segment_destroy(p_pre);
@@ -127,7 +136,7 @@ void buddy_system_free(buddy_system *buddy_sys, int start_addr, unsigned order)
     /* 与后一个合并 */
     else if (order < buddy_sys->max_order && p != NULL && free_seg->start_addr + free_seg->size == p->start_addr)
     {
-        if (p_pre == NULL) /* 新加入段在表头 */
+        if (p_pre == NULL) /* 涉及链表头 */
         {
             buddy_sys->free_seg_list[order] = p->next;
         }
@@ -167,7 +176,7 @@ buddy_system *buddy_system_create(unsigned max_order, int size)
     buddy_sys->free_seg_list = (free_segment **)malloc(sizeof(free_segment *) * (max_order + 1));
 
     /* 初始化链表数组 */
-    for (int order = 0; order <= max_order; ++order)
+    for (unsigned order = 0; order <= max_order; ++order)
     {
         buddy_sys->free_seg_list[order] = NULL;
     }
