@@ -11,7 +11,7 @@ typedef struct segment
 {
     int start_addr;       /* 起始地址 */
     int size;             /* 段长度 */
-    int order;       /* 幂次 */
+    int order;            /* 幂次 */
     vpage_table *vpage_t; /* 虚拟页表指针 */
     struct segment *next;
 } segment;
@@ -21,7 +21,7 @@ typedef struct segment
 */
 typedef struct segment_table
 {
-    int pid;            /* 所属进程id */
+    int pid;                 /* 所属进程id */
     segment *seg_list;       /* 段信息链表 */
     buddy_system *buddy_sys; /* 伙伴系统指针 */
     ppage_system *ppage_sys; /* 物理页表指针 */

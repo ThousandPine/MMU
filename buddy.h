@@ -15,7 +15,7 @@ typedef struct free_segment
 */
 typedef struct
 {
-    int max_order;           /* 最大幂次 */
+    int max_order;                /* 最大幂次 */
     free_segment **free_seg_list; /* 链表头数组 */
 } buddy_system;
 

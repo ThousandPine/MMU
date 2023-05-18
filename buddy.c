@@ -246,7 +246,7 @@ void buddy_system_destroy(buddy_system *buddy_sys)
 ===================
 */
 void buddy_system_print(buddy_system *buddy_sys)
-{   
+{
     int free_space = 0;
 
     puts("=======buddy system======");

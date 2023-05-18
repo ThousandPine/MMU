@@ -7,7 +7,7 @@
 */
 typedef struct
 {
-    int page_num;       /* 虚拟页数量 */
+    int page_num;            /* 虚拟页数量 */
     int *page_map;           /* 页号映射表 */
     ppage_block *ppage_list; /* 申请的物理页块信息 */
 } vpage_table;
