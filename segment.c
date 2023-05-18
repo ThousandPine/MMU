@@ -119,6 +119,7 @@ void segment_free(segment_table *segment_t, int start_addr)
     }
     free(p);
 
+    return;
 }
 
 /* ========================================================================= */
@@ -165,4 +166,6 @@ void segment_table_destroy(segment_table *segment_t)
 
     /* 释放段表空间 */
     free(segment_t);
+
+    return;
 }
