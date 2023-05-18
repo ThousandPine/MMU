@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "vpage.h"
+#include "../vpage.h"
 
 int main()
 {

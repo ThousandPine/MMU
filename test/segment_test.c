@@ -1,4 +1,4 @@
-#include "segment.h"
+#include "../segment.h"
 #include <stdio.h>
 
 int main()
