@@ -214,7 +214,7 @@ void ppage_print_free_block(ppage_system *ppage_sys)
     ppage_block *p = ppage_sys->free_block_list;
     puts("========Free ppage========");
 
-    printf("size::%d, free_space::%d\n", ppage_sys->page_num * ppage_sys->page_size, ppage_sys->free_page_num * ppage_sys->page_size);
+    printf("size::%d, free::%d\n", ppage_sys->page_num * ppage_sys->page_size, ppage_sys->free_page_num * ppage_sys->page_size);
     printf("page_num::%d, free_pages::%d\n\n", ppage_sys->page_num, ppage_sys->free_page_num);
 
     for (int i = 0; p != NULL; ++i, p = p->next)
