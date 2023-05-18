@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 // #include <unistd.h>
-// #include <sys/wait.h>
 #include <semaphore.h>
 #include <pthread.h>
 #include "memory.h"
@@ -29,13 +28,15 @@ void sleep(int n)
 */
 void *process(void *arg)
 {
+    sleep(1);
+
     /* 初始化 */
     sem_wait(&mutex);
 
     int pid = memory_register_process(mem); /* 注册内存空间 */
 
     printf("process_init::pid=%d\n\n", pid); /* 输出初始化信息 */
-    memory_printf_info(mem);                 /* 输出内存信息 */
+    memory_printf_info_by_pid(mem, pid);                 /* 输出内存信息 */
 
     sem_post(&mutex);
 
@@ -80,8 +81,6 @@ void *process(void *arg)
     /* 释放资源并结束 */
     sem_wait(&mutex);
     memory_unregister_process(mem, pid);
-    // printf("process_finish::pid=%d\n\n", pid); /* 输出进程结束信息 */
-    // memory_printf_info(mem);                   /* 输出内存信息 */
     sem_post(&mutex);
     return NULL;
 }
