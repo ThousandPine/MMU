@@ -208,7 +208,7 @@ void memory_printf_info(memory *mem)
 
     while (p != NULL)
     {
-        printf("pid: %d\n", p->pid);
+        printf("pid: %d, size:%d, free:%d\n", p->pid, p->size, p->free_size);
 
         buddy_system_print(p->buddy_sys);
         putchar('\n');
@@ -242,7 +242,7 @@ void memory_printf_info_by_pid(memory *mem, int pid)
         p = p->next;
     }
 
-    printf("pid: %d\n", p->pid);
+    printf("pid: %d, size:%d, free:%d\n", p->pid, p->size, p->free_size);
 
     buddy_system_print(p->buddy_sys);
     putchar('\n');
