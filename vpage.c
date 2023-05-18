@@ -69,12 +69,7 @@ vpage_table *vpage_table_alloc(ppage_system *ppage_sys, int size)
 */
 void vpage_table_free(ppage_system *ppage_sys, vpage_table *vpage_t)
 {
-    /* 释放物理页 */
-    ppage_free(ppage_sys, vpage_t->ppage_list);
-
-    /* 释放映射表 */
-    free(vpage_t->page_map);
-
-    /* 释放虚拟页表 */
-    free(vpage_t);
+    ppage_free(ppage_sys, vpage_t->ppage_list); /* 释放物理页 */
+    free(vpage_t->page_map);                    /* 释放映射表 */
+    free(vpage_t);                              /* 释放虚拟页表 */
 }
