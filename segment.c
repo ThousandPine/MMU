@@ -66,7 +66,10 @@ int segment_alloc(segment_table *segment_t, int size)
         seg->next = p;
     }
 
-    /* 4. 返回结果 */
+    /* 4. 从段表扣除相应大小 */
+    segment_t->free_size -= seg->size;
+
+    /* 5. 返回结果 */
 
     return seg->start_addr;
 }
@@ -102,7 +105,10 @@ void segment_free(segment_table *segment_t, int start_addr)
     /* 3. 释放虚拟页表 */
     vpage_table_free(segment_t->ppage_sys, p->vpage_t);
 
-    /* 4. 从段记录链表移出 */
+    /* 4. 增加段表空闲空间 */
+    segment_t->free_size += p->size;
+
+    /* 5. 从段记录链表移出 */
     if (p_pre == NULL)
     {
         segment_t->seg_list = p->next;
@@ -112,6 +118,7 @@ void segment_free(segment_table *segment_t, int start_addr)
         p_pre->next = p->next;
     }
     free(p);
+
 }
 
 /* ========================================================================= */
@@ -126,6 +133,8 @@ segment_table *segment_table_create(int pid, ppage_system *ppage_sys, int size, 
     segment_table *segment_t = (segment_table *)malloc(sizeof(segment_table));
     segment_t->seg_list = NULL;
     segment_t->pid = pid;
+    segment_t->size = size;
+    segment_t->free_size = size;
     segment_t->ppage_sys = ppage_sys;
     segment_t->buddy_sys = buddy_system_create(max_order, size);
     segment_t->next = NULL;

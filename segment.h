@@ -22,6 +22,8 @@ typedef struct segment
 typedef struct segment_table
 {
     int pid;                 /* 所属进程id */
+    int size;                /* 内存空间 */
+    int free_size;           /* 空闲空间 */
     segment *seg_list;       /* 段信息链表 */
     buddy_system *buddy_sys; /* 伙伴系统指针 */
     ppage_system *ppage_sys; /* 物理页表指针 */
